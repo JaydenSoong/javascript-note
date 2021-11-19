@@ -349,3 +349,84 @@ console.log(2);
 setTimeout(() => console.log(3), 1000);
 ```
 
+# 五、location 对象
+
+## 5.1 什么是 location 对象
+
+window 对象提供了一个 location 属性用于获取或设置窗体的 URL，也可以用于解析 URL。因为这个属性返回的是一个对象，所以这个属性也称为 location 对象。
+
+## 5.2 URL
+
+==统一资源定位符(Uniform Resource Locator, URL)==是互联网上标准的资源地址，互联网上每一个文件都有一个唯一的 URL，它包含的信息指出文件的位置及浏览器应该怎么处理它。
+
+URL 的一般语法格式为：
+
+```htm
+protocol://host[:port]/path/[?query#fragment]
+https://www.tangwai.com/ver6/home/index.htm?name=songdailiang&age=23#link
+```
+
+| 组成     | 说明                                                         |
+| -------- | ------------------------------------------------------------ |
+| protocol | 通信协议，常用的有 http、https、ftp等                        |
+| host     | 主机(域名) 如 www.baidu.com                                  |
+| port     | 端口号，可选，如果没写表示使用默认端口号 80                  |
+| path     | 路径，由零个或多个"/"符号隔开的字符串，一般用来表示主机上的一个目录或文件地址 |
+| query    | 参数，在"?"后面，以键值对的形式通过"&"连接多个键值对         |
+| fragment | 片段，在"#"后面，常用于链接锚点                              |
+
+## 5.3 location 对象的常用属性
+
+| 常用属性            | 返回值                                      |
+| ------------------- | ------------------------------------------- |
+| ==location.href==   | 获取或设置整个 URL                          |
+| ==location.host==   | 返回主机(域名) 如 www.baidu.com             |
+| location.port       | 返回端口号，如果没有写则返回空字符串        |
+| location.pathname   | 返回路径                                    |
+| ==location.search== | 返回参数                                    |
+| location.hash       | 返回片段，即 "#" 后面的内容，通常是链接锚点 |
+
+代码举例：获取前一个页面表单的 get 方式提交的用户名。
+
+```javascript
+let p = document.querySelector('p');
+// 获取参数并且通过 substr()，截取”？“以后的内容
+let searchStr = location.search.substr(1);
+// 将参数字符通过"="切割为数组，第二个元素就是用户名
+let username = searchStr.split('=')[1]
+p.innerHTML = username + ', 你好。'
+```
+
+## 5.4 location 对象的常用方法
+
+| 常用方法           | 作用                                                         |
+| ------------------ | ------------------------------------------------------------ |
+| location.assign()  | 跟 location.href 属性一样，可以跳转页面(也称为页面重定向)，会记录历史，可以后退 |
+| location.replace() | 替换当前页面，因为不记录历史，所以不能后退                   |
+| location.reload()  | 重新加载页面，相当于刷新按钮或 F5，如果参数为 true 表示强制刷新，相当于 Ctrl + F5 |
+
+# 六、navigator 对象
+
+navigator 对象包含有关浏览器的信息，它有很多属性，最常用的是 userAgent，该属性可以返回由客户端发送的 user-agent 头部信息的值。比如，例用下面的信息可以判断用户是用什么终端访问的，并作出相应处理。
+
+```javascript
+if(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)){
+	// 移动端处理
+    window.location.href = '';
+} else {
+    // pc端处理
+	window.location.href = '';
+}
+```
+
+# 七、 history 对象
+
+window 对象提供了一个 history 对象，与浏览器历史记录进行交互。该对象包含用户在浏览器中访问的 URL。
+
+| 常用方法          | 作用                                                         |
+| ----------------- | ------------------------------------------------------------ |
+| history.back()    | 可以实现后退功能                                             |
+| history.forward() | 可以实现前进功能                                             |
+| history.go(参数)  | 可以实现前进和后退功能，参数为正整数表示前进，参数为负整数表示后退 |
+
+实际开发中，history 使用得比较少，因为浏览器本身就有前进和后退，只是左开发一些类似 OA 系统时，需要在页面中用按钮实现前进和后退。
