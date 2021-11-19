@@ -102,7 +102,7 @@ window.setTimeout(调用函数, [延迟毫秒数]);
 > 1. 调用定时器时 window 可以省略
 > 2. 调用函数时可以直接写函数，也可以写函数名
 > 3. 延迟的毫秒数省略是默认的 0，如果写，是毫秒值
-> 4. 如果有多个定时器，可以给每个定时器赋值一个标识符(变量名)
+> 4. 多个定时器，可以给每个定时器赋值一个标识符(变量名),如果需要清除定时器，也需要用到定时器的标识符。
 
 ```javascript
 callback = ()=>{
@@ -112,5 +112,240 @@ let timer1 = setTimeout(callback, 2000);
 let timer2 = setTimeout(callback, 4000);
 ```
 
+`setTimeout()`这个函数也称为回调函数 callback。
 
+普通函数是按照代码顺序直接调用。
+
+回调函数需要等待时间，时间到了才去调用这个函数，因此称为回调函数。可以理解为上一件事干完回头再调用的意思。之前的事件绑定中的函数也是回调函数。
+
+## 3.3 停止 setTime() 定时器
+
+```javascript
+widow.clearTimeout(timeoutID)
+```
+
+`clearTimeout()`方法取消了先前通过调用`setTimeout()`建立的定时器。
+
+> **注意：**
+>
+> 1. 调用时 window 也可以省略
+> 2. 需要定时器的标识符作为参数
+
+```javascript
+let timer = setTimeout(callback, 5000)
+btn.addEventListener('click', ()=>{
+	clearTimeout(timer)
+}
+```
+
+## 3.4 setInterval() 定时器
+
+```javascript
+window.setInterval(调用函数, [延迟毫秒数]);
+```
+
+`setInterval()`方法用于重复调用一个函数，每隔固定时间，就去调用一次回调函数。
+
+> **注意：**
+>
+> 1. 调用定时器时 window 可以省略
+> 2. 调用函数时可以直接写函数，也可以写函数名
+> 3. 延迟的毫秒数省略是默认的 0，如果写，是毫秒值
+> 4. 多个定时器，可以给每个定时器赋值一个标识符(变量名),如果需要清除定时器，也需要用到定时器的标识符。
+
+> **两种定时的区别：**
+>
+> 1. `setTimeout()`延时时间到了就去调用回调函数，只调用一次。
+> 2. `setInterval()`每隔固定时间就去调用回调函数，会重复调用多次。
+
+简单时间显示：
+
+```html
+<div class="time">
+  <div class="h"></div>
+  <div class="m"></div>
+  <div class="s"></div>
+</div>
+<script>
+  setInterval(()=>{
+    let h = document.querySelector('.h');
+    let s = document.querySelector('.s');
+    let m = document.querySelector('.m');
+    let time = new Date();
+    h.innerHTML = time.getHours();
+    m.innerHTML = time.getMinutes();
+    s.innerHTML = time.getSeconds();
+  }, 1000);
+</script>
+```
+
+## 3.5 停止 setInterval() 定时器
+
+```javascript
+widow.clearInterval(timeoutID)
+```
+
+`clearInterval()`方法取消了先前通过调用`setInterval()`建立的定时器。
+
+> **注意：**
+>
+> 1. 调用时 window 也可以省略
+> 2. 需要定时器的标识符作为参数
+
+```javascript
+let start = document.getElementById("start");
+let stop = document.getElementById("stop");
+// 需要同时设置开始与停止的定时器，可将标识符定义在外面，并赋值为 null(避免返回 undefined)。
+let timer = null;
+start.addEventListener("click", ()=>{
+  timer = setInterval(()=>{console.log("定时器内容")}, 1000);
+})
+stop.addEventListener("click", ()=>clearInterval(timer)); 
+```
+
+案例：
+
+![倒计时](.\images\djs.png)
+
+```html
+<div class="container">
+  <input type="text">
+  <button id="btn">获取验证码</button>
+</div>
+<script>
+  let btn = document.getElementById("btn");
+  // 等待时间
+  let i=60;
+  btn.addEventListener("click", () => {
+    btn.disabled = true;
+    let timer = setInterval(()=>{
+      // 时间减少到 0 时复原按钮，清除定时器，重置时间
+      if(i==0){
+        btn.disabled = false;
+        btn.innerHTML = '获取验证码'
+        clearInterval(timer);
+        i = 60;
+      } else {
+        btn.innerHTML = '请等待 ' + i-- + ' 秒';
+      }
+    }, 1000);
+  })
+</script>
+```
+
+## 3.6 this 指向问题
+
+1. 全局作用域或者普通函数中 this 指向全局对象 window，定时器中的 this 也是指向 window。
+2. 方法调用中指向调用它的对象。
+3. 构造函数中的 this 指向创建的实例。
+4. 箭头函数会默认帮我们绑定外层 this。
+
+```javascript
+// 全局作用域 this => window
+console.log(this);
+// 普通函数 this => window
+function fn() {
+  console.log(this);
+}
+fn();
+// 定时器 this => window
+setTimeout(fn, 1000);
+
+let obj = {
+  logThis: function fn(){
+    console.log(this);
+  }
+}
+//方法调用 this => obj
+obj.logThis()
+let btn = document.querySelector('button');
+// this => btn
+btn.addEventListener('click', function(){
+  console.log(this);
+})
+
+
+function Cat() {
+  console.log(this);
+}
+//构造函数 this => Cat{}
+let cat = new Cat();
+
+//箭头函数 this=>window
+let fnx = () => {console.log(this);}
+btn.addEventListener('click', fnx);
+```
+
+# 四、JS 执行机制
+
+## 4.1 JS 的单线程特性
+
+javaScript 语言的一大特点就是==单线程==，也就是同一个时间只能做一件事情。这就意味着，所有任务需要排队，前一个任务执行结束才会执行后一个任务。这样就会导致：如果 JS 执行的时间过长，就会造成页面渲染不连贯，导致页面渲染加载阻塞的感觉。
+
+## 4.2 同步和异步
+
+为了解决单线程问题，利用多核 CPU 的计算能力，HTML5 提出 Web Worker 标准，允许 JavaScript 创建多个线程，于是，JS 中出现了==同步==和==异步==。
+
+### 4.2.1 同步
+
+前一个任务结束的再执行后一个任务，程序的执行顺序与任务的排列顺序是一致的、同步的。
+
+同步任务都在主线程上执行，形成一个==执行栈==。
+
+### 4.2.2 异步
+
+执行一个任务时，因为这个任务执行时间较长，所以在这个期间，还可以去处理其它任务。
+
+JS 的异步任务是通过回调函数实现的。
+
+一般而言，异步任务有以下有三种类型
+
+1. 普通事件，如 click，resize 等
+2. 资源加载，如 load，error 等
+3. 定时器，包括 setInterval、setTimeout 等
+
+异步任务相关的回调函数将会被添加到==任务队列==中(任务队列也称消息队列)。
+
+> 他们的本质区别：流水线上各个流程的执行顺序不同。
+
+## 4.3 JS 执行机制
+
+![JS 执行机制](.\images\test.drawio.png)
+
+1. 先执行执行栈中的同步任务。
+2. 遇到异步任务(回调函数)就提交给对应的异步处理进程，由异步处理进程将其放到任务队列中。
+3. 一旦执行栈中的所有同步任务执行完毕，系统就会按顺序读取任务队列中的异步任务，使被读取的异步任务结束等待状态，进行执行栈，开始执行。
+4. 主线程会不断地查询任务队列，获取任务，再执行。这种机制被称为==事件循环(event loop)==。
+
+可以这样理解：
+
+![](.\images\lijie.png)
+
+代码举例：
+
+```javascript
+// 显然地，下面代码的打印顺序是 1，2，3。
+// 1. 主线程执行第一句，打印 1。
+// 2. 执行第二句，定时器中的回调函数属于异步任务，由异步处理机制将其加入到队列中。
+// 3. 执行第三句，打印 2。
+// 4. 执行栈中的主线程执行完毕，开始检查任务队列中的任务，打印 3。
+// 如果将定时器中的等待时间设置为0，执行顺序依然是一样的，只是不需要等待 1000 毫秒
+console.log(1);
+setTimeout(() => console.log(3), 1000);
+//setTimeout(() => console.log(3), 0);
+console.log(2);
+```
+
+```javascript
+// 1. 主线程执行第一句，打印 1。
+// 2. 事件监听中的回调函数也属于异步任务，由异步处理机制将其加入到队列中。
+// 3. 执行第三句，打印 2。
+// 4. 执行第四句，定时器中的回调函数属于异步任务，由异步处理机制将其加入到队列中
+// 5. 执行栈中的主线程执行完毕，开始检查任务队列中的任务，打印 3。
+// 主线程会反复查询任务队列，只要触发了 click，就会开始执行第二句中的回调函数。这个过程是循环的。
+console.log(1);
+document.addEventListener('click', () => console.log('click'));
+console.log(2);
+setTimeout(() => console.log(3), 1000);
+```
 
