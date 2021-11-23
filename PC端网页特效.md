@@ -95,3 +95,75 @@ client(客户端)，使用 client 系列的相关属性可以用来获取元素�
 > ==注意：==
 >
 > **pageshow 事件是给 window 添加的**
+
+# 三、元素滚动 scroll 系列
+
+## 3.1 元素 scroll 系列属性
+
+scroll(滚动)，scroll 系列的相关属性可以动态的得到该元素的大小、滚动距离等。同样也可以通过 `dir(node)`在元素节点的所有属性中找到 scrollXXX 系列属性。该系列的**返回值也是不带单位**的。
+
+| scroll 系列属性      | 作用                         |
+| -------------------- | ---------------------------- |
+| element.scrollTop    | 返回被卷去的上侧距离         |
+| element.scrollLeft   | 返回被卷去的左侧距离         |
+| element.scrollWidth  | 返回自身实际的宽度，不含边框 |
+| element.scrollHeight | 返回自身实际的高度，不含边框 |
+
+![](.\images\scroll.png)
+
+## 3.2 页面被卷去头部的处理
+
+如果浏览器的高(宽)不足以显示整个页面时，会自动出现滚动条。当滚动条向下滚动时，页面上部被隐藏的高度，就称为页面被卷去的头部。滚动条在滚动时会触发 onscroll 事件。
+
+应用分析：
+
+1. 经常需要用到滚动事件 scroll 是页面滚动，所以事件源是 document。
+2. 如果需要在滚动到某个值做某件事情(比如淘宝页面的固定侧边栏)，就判断卷去的头部的值是否大于某个预设值。
+3. **页面**被卷去的头部可以通过 `widow.pageYOffset`获得，如果是被卷去的左侧则通过 `window.pageYOffset`获得。
+4. **元素**被卷去的头部是`element.scrollTop`，与**页面**被卷去的头部获得是不一样的。
+
+**兼容问题：**
+
+需要注意的是，获取页面被卷去的头部的方式`window.pageYOffset`有兼容性问题，通常有如下处理方式：
+
+1. 声明了 DTD，使用 `document.documentElement.scrollTop`
+2. 未声明 DTD，使用 `document.body.scrollTop`
+3. 新的方法 `window.pageYOffset` 和 `window.pageXOffset` 是从 IE9 开始支持的。
+
+下面的自定义函数可以处理该兼容性问题(如果不考虑 IE9 以下的浏览器，下面函数只作了解)
+
+```javascript
+function getScroll() {
+  return {
+    left: window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0,
+    top: window.pageXOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+  };
+}
+// 调用该函数
+let left = getScroll().left
+let top = getScroll().top
+```
+
+# 四、offset、client 与 scroll 三大系列总结
+
+## 4.1 三大系列大小对比，以 width 举例
+
+| xxxWidth            | 作用                                   |
+| ------------------- | -------------------------------------- |
+| element.offsetWidth | 返回自身宽度，包含 padding、边框       |
+| element.clientWidth | 返回自身宽度，包含 padding，不包含边框 |
+| element.scrollWidth | 返回自身宽度，包含 padding，不包含边框 |
+
+![offset](.\images\offset.png)
+
+![client](.\images\client.png)
+
+![scroll](.\images\scroll1.png)
+
+## 4.2 应用场景
+
+1. offset 系列经常用于获得元素位置 offsetLeft、offsetTop
+2. client 系列经常用于获取元素大小 clientWidth、clientHeight
+3. scroll 系列经常用于获取滚动距离 scrollTop、scrollLeft
+4. 页面的滚动和元素不同，通过 `window.pageYOffset`、`window.pageXOffset`获得
+
