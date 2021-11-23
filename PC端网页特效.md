@@ -158,7 +158,7 @@ let top = getScroll().top
 
 ![client](.\images\client.png)
 
-![scroll](https://gitee.com/jaydensoong/javascript-note/blob/main/images/scroll1.png)
+![scroll](.\images\scroll1.png)
 
 ## 4.2 应用场景
 
