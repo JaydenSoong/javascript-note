@@ -109,7 +109,7 @@ scroll(滚动)，scroll 系列的相关属性可以动态的得到该元素的�
 | element.scrollWidth  | 返回自身实际的宽度，不含边框 |
 | element.scrollHeight | 返回自身实际的高度，不含边框 |
 
-![](.\images\scroll.png)
+![](https://gitee.com/jaydensoong/imgsrc/raw/master/scroll.png)
 
 ## 3.2 页面被卷去头部的处理
 
@@ -154,11 +154,11 @@ let top = getScroll().top
 | element.clientWidth | 返回自身宽度，包含 padding，不包含边框 |
 | element.scrollWidth | 返回自身宽度，包含 padding，不包含边框 |
 
-![offset](.\images\offset.png)
+![](https://gitee.com/jaydensoong/imgsrc/raw/master/offset.png)
 
-![client](.\images\client.png)
+![](https://gitee.com/jaydensoong/imgsrc/raw/master/client.png)
 
-![scroll](.\images\scroll1.png)
+![](https://gitee.com/jaydensoong/imgsrc/raw/master/scroll1.png)
 
 ## 4.2 应用场景
 
@@ -167,3 +167,151 @@ let top = getScroll().top
 3. scroll 系列经常用于获取滚动距离 scrollTop、scrollLeft
 4. 页面的滚动和元素不同，通过 `window.pageYOffset`、`window.pageXOffset`获得
 
+# 五、动画函数封装
+
+## 5.1 动画实现原理
+
+**核心原理：**通过定时器 setInterval() 不断移动盒子位置
+
+实现步骤：
+
+1. 获取盒子当前位置
+2. 让盒子在当前位置加上 1 个移动距离
+3. 利用定时器不断重复步骤 2 中的动作
+4. 设置一个结束定时器的条件
+
+```javascript
+let div = document.querySelector('div');
+let timer = setInterval(() => {
+  // 到达指定位置，清除定时器
+  if(div.offsetLeft >= 400) {
+    clearInterval(timer);
+  }
+  // 获取位置用 offsetXXX，设置用 style
+  div.style.left = div.offsetLeft + 1 + 'px';
+}, 30)
+```
+
+
+
+> 注意：这里设置动画的元素需要添加定位，设置``postion: absolute`才能使用`element.style.left`等。
+
+## 5.2 动画函数简单封装
+
+封装函数时定义两个形参：**动画对象**和**移动距离**。
+
+```javascript
+function animate(obj, target) {
+  let timer = setInterval(() => {
+    // 到达指定位置，清除定时器
+    if(obj.offsetLeft >= target) {
+      clearInterval(timer);
+    }
+    // 获取位置用 offsetXXX，设置用 style
+    obj.style.left = obj.offsetLeft + 1 + 'px';
+  }, 30);
+}
+```
+
+## 5.3 给不同元素设置不同定时器
+
+如果多个元素都使用上一节定义的动画函数，每次都要使用`let`声明定时器，这样程序的效率是很低的。这里应该给不同元素设置不同的定时器，让每一个元素使用自己的定时器。这里需要的核心思想就是利用javascript的动态语言特性。将定时器设置为元素的一个属性。
+
+如果需要通过某个事件的触发来开启动画，比如点击按钮。每点击一次就相当于给元素添加了一个定时器，最后元素运动越来越快。与我们的预期不符。这时可以在函数最前面先清除定时器。
+
+最后动画函数改为：
+
+```javascript
+function animate(obj, target) {
+  //先清除定时器
+  clearInterval(obj.timer);
+  //直接将定时器设定为元素的一个属性
+  obj.timer = setInterval(() => {
+    // 到达指定位置，清除定时器
+    if(obj.offsetLeft >= target) {
+      clearInterval(obj.timer);
+    }
+    // 获取位置用 offsetXXX，设置用 style
+    obj.style.left = obj.offsetLeft + 1 + 'px';
+  }, 30);
+}
+```
+
+## 5.4 缓动动画
+
+缓动动画就是让元素的运动速度有所变化，最常见的就是让速度慢慢停下来。可以这样理解：
+
+匀速动画就是盒子当前的位置 + 固定值(比如 10)
+
+缓动动画就是盒子当前的位置 + 变化的值(设定步长 = (目标 - 现在的位置) / 10)
+
+ 所以，缓动动画的实现可以分为下面几步：
+
+1. 让盒子每次移动的距离慢慢变小，速度就会慢慢落下来
+2. 核心算法：步长 = (目标值 - 现在的位置) / 10
+3. 停止条件，当盒子位置等于目标位置
+4. 步长值需要取整。取整思路：如果步长值为正，往上取整，如果步长值为负，往下取整
+5. 当步长值为正时，盒子会往前移动，当步长值为负时，盒子会往后移动
+
+所以现在动画函数变为：
+
+```javascript
+function animate(obj, target) {
+  clearInterval(obj.timer);
+  obj.timer = setInterval(() => {
+    // 确定缓动动画步长值
+    let step = (target - obj.offsetLeft) / 10;
+    // 将步长值调整为整数。如果是正数，就往大取整，如果为负数，就往小取整。
+    step = step > 0 ? Math.ceil(step) : Math.floor(step);
+    // 到达指定位置，清除定时器
+    if(obj.offsetLeft === target) {
+      clearInterval(obj.timer);
+    }
+    // 获取位置用 offsetXXX，设置用 style
+    obj.style.left = obj.offsetLeft + step + 'px';
+  }, 15); // 定时器的时间一般间隔 15 毫秒
+}
+```
+
+## 5.5 动画函数添加回调函数
+
+**回调函数原理：**将一个函数作为一个参数传递到另一个函数调用里面，当那个函数执行完毕后再去调用传递进去的这个函数，这个过程就是回调。
+
+所以，可以给我们的动画函数增加一个回调函数参数，让其可以在动画完成后执行其它任务。
+
+> 注意：在封装好的动画函数里面，执行回调函数的位置应该在清除定时器的位置，即动画完成后。
+
+这个时候，动画函数变为：
+
+```javascript
+function animate(obj, target, callback) {
+  clearInterval(obj.timer);
+  obj.timer = setInterval(() => {
+    // 确定缓动动画步长值
+    let step = (target - obj.offsetLeft) / 10;
+    // 将步长值调整为整数。如果是正数，就往大取整，如果为负数，就往小取整。
+    step = step > 0 ? Math.ceil(step) : Math.floor(step);
+    // 到达指定位置，清除定时器
+    if(obj.offsetLeft === target) {
+      clearInterval(obj.timer);
+      // 清除定时器，动画执行完毕，如果有回调函数，开始执行回调函数
+      if(callback) {
+        callback();
+      }
+    }
+    // 获取位置用 offsetXXX，设置用 style
+    obj.style.left = obj.offsetLeft + step + 'px';
+  }, 15); // 定时器的时间一般间隔 15 毫秒
+}
+```
+
+现在，调用动画函数时就可以传递一个函数参数了。
+
+```javascript
+// 动画完成后，将盒子改变颜色
+btn800.addEventListener('click', ()=>animate(span, 800, ()=>span.style.backgroundColor='pink'));
+```
+
+## 5.6 动画函数的使用
+
+现在，就可以把我们封装好的动画函数单独放在一个 js 文件中，在需要使用到该动画函数的时候，直接在页面中引用该 js 文件就可以了。
